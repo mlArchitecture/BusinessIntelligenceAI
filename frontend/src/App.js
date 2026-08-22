@@ -5,6 +5,7 @@ function App() {
   return (
     <div>
       <h1>Hello, World!</h1>
+      <p>Making this change just to check the deployed frontend</p>
     </div>
   );
 }

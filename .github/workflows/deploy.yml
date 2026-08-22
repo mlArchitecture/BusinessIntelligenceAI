@@ -1,0 +1,56 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/businessintelligenceai:latest
+
+  # deploy:
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.EC2_HOST }}
+  #         username: ${{ secrets.EC2_USER }}
+  #         key: ${{ secrets.EC2_SSH_KEY }}
+  #         script: |
+  #           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/businessintelligenceai:latest
+  #           sudo docker stop businessintelligenceai || true
+  #           sudo docker rm businessintelligenceai || true
+  #           sudo docker run -p 5000:5000 --env-file /home/ubuntu/.env -d --name businessintelligenceai ${{ secrets.DOCKER_USERNAME }}/businessintelligenceai:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/businessintelligenceai:latest
+            sudo docker stop businessintelligenceai || true
+            sudo docker rm businessintelligenceai || true
+            # Updated the path to use the dynamic username secret
+            sudo docker run -p 5000:5000 --env-file /home/${{ secrets.EC2_USER }}/.env -d --name businessintelligenceai ${{ secrets.DOCKER_USERNAME }}/businessintelligenceai:latest

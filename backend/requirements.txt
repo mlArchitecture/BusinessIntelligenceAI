@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+pandas
+numpy
+xgboost
+shap
+statsmodels
+scipy
+langgraph
+langchain
+langchain-core
+langchain-openai
+pydantic
+python-dotenv

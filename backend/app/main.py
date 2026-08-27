@@ -6,7 +6,7 @@ import uvicorn
 import jwt
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
-from app.orchestrator_graph import orchestrator
+from orchestrator_graph import orchestrator
 import duckdb
 
 SECRET_KEY = "super-secret-key-for-prototype"

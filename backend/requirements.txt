@@ -12,3 +12,6 @@ langchain-core
 langchain-openai
 pydantic
 python-dotenv
+pyjwt
+passlib
+bcrypt

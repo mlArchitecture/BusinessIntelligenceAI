@@ -3,6 +3,7 @@ from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
+from forecasting_engine import analyze_forecast_variance
 
 # 1. Update State Definition
 class GraphState(TypedDict):

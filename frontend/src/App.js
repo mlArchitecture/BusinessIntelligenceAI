@@ -1,13 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import AuthContext from './store/auth-context';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
+import Dashboard from './components/Dashboard/Dashboard';
 
-function App() {
+const App = () => {
+  const authCtx = useContext(AuthContext);
+  const isAuthenticated = !!authCtx.token;
+
   return (
-    <div>
-      <h1>Hello, World!</h1>
-      <p>Making this change just to check the deployed frontend</p>
-    </div>
+    <Router>
+      <Routes>
+        <Route 
+          path="/login" 
+          element={!isAuthenticated ? <Login /> : <Navigate to="/" />} 
+        />
+        <Route 
+          path="/register" 
+          element={!isAuthenticated ? <Register /> : <Navigate to="/" />} 
+        />
+        <Route 
+          path="/" 
+          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} 
+        />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;

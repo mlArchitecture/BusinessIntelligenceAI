@@ -173,7 +173,6 @@ async def analyze_variance_endpoint(request: VarianceRequest, current_user: dict
 
         initial_state = {
             "target_kpi": request.target_kpi,
-            "db_link": DB_FILE,
             "analysis_date": request.analysis_date,
             "evidence_json": "",
             "historical_r2_score": 0.0,

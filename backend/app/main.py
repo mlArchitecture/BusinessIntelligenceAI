@@ -9,8 +9,9 @@ from passlib.context import CryptContext
 from orchestrator_graph import orchestrator
 import duckdb
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
-SECRET_KEY = "super-secret-key-for-prototype"
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 DB_FILE = "business_intelligence.db"

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from orchestrator_graph import orchestrator
 import duckdb
+from middlewares/corsMiddleware import setup_cors
 
 SECRET_KEY = "super-secret-key-for-prototype"
 ALGORITHM = "HS256"
@@ -18,6 +19,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/login")
 
 app = FastAPI(title="BusinessIntelligence.AI Engine")
+
+setup_cors(app)
 
 def init_db():
     conn = duckdb.connect(DB_FILE)

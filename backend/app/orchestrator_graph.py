@@ -7,7 +7,8 @@ from forecasting_engine import analyze_forecast_variance
 
 # 1. Update State Definition
 class GraphState(TypedDict):
-    csv_path: str
+    target_kpi: str
+    db_link: str
     analysis_date: str
     evidence_json: str
     historical_r2_score: float

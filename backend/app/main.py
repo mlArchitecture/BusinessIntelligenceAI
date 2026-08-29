@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from orchestrator_graph import orchestrator
 import duckdb
-from middlewares.corsMiddleware import setup_cors
+from fastapi.middleware.cors import CORSMiddleware
 
 SECRET_KEY = "super-secret-key-for-prototype"
 ALGORITHM = "HS256"
@@ -19,6 +19,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/login")
 
 app = FastAPI(title="BusinessIntelligence.AI Engine")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://main.d3s8curp1ny75.amplifyapp.com",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 setup_cors(app)
 

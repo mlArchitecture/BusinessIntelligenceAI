@@ -44,8 +44,7 @@ def analyze_forecast_variance(csv_path, today_date):
     xgb_model = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=100, random_state=42)
     xgb_model.fit(X_train, y_train)
     
-    # 4. Extract Driverdata
-   s strictly for the new variance
+    # 4. Extract Driverdata strictly for the new variance
     explainer = shap.TreeExplainer(xgb_model)
     shap_values = explainer.shap_values(X_today)
     

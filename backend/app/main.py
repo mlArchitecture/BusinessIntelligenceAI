@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from orchestrator_graph import orchestrator
 import duckdb
-from middlewares/corsMiddleware import setup_cors
+from ../middlewares/corsMiddleware import setup_cors
 
 SECRET_KEY = "super-secret-key-for-prototype"
 ALGORITHM = "HS256"

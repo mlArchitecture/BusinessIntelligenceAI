@@ -32,7 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-setup_cors(app)
+# setup_cors(app)
 
 def init_db():
     conn = duckdb.connect(DB_FILE)

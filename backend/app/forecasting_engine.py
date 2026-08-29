@@ -4,9 +4,12 @@ import xgboost as xgb
 import shap
 import json
 import statsmodels.api as sm
+import duckdb
 
-def analyze_forecast_variance(csv_path, today_date):
-    df = pd.read_csv(csv_path)
+def analyze_forecast_variance(today_date):
+    conn = duckdb.connect("business_intelligence.db")
+    df = conn.execute("select * from KPIs").df()
+    conn.close()
     df['date'] = pd.to_datetime(df['date'])
     # df = df.sort_values('date').set_index('date') No need to sort based on date, assuming the data is already sorted based on date
     

@@ -14,5 +14,5 @@ pydantic
 python-dotenv
 pyjwt
 passlib
-bcrypt
+bcrypt==4.0.1
 duckdb

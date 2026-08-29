@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://13.48.190.37/',
+  baseURL: 'https://businessintelligenceai-uirv.onrender.com',
 });
 
 api.interceptors.request.use((config) => {

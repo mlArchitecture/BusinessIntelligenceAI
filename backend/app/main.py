@@ -24,7 +24,7 @@ app = FastAPI(title="BusinessIntelligence.AI Engine")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "*"
+        "https://main.d3s8curp1ny75.amplifyapp.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],

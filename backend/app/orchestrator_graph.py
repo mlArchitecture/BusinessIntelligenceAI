@@ -8,7 +8,6 @@ from forecasting_engine import analyze_forecast_variance
 # 1. Update State Definition
 class GraphState(TypedDict):
     target_kpi: str
-    db_link: str
     analysis_date: str
     evidence_json: str
     historical_r2_score: float
@@ -16,7 +15,7 @@ class GraphState(TypedDict):
 
 # 2. Execution Node: Run the ML Forecast Model
 def run_forecast_ml_node(state: GraphState):
-    json_output = analyze_forecast_variance(state["csv_path"], state["analysis_date"])
+    json_output = analyze_forecast_variance(state["analysis_date"])
     data = json.loads(json_output)
     
     # Handle the safety catch if today's data is missing

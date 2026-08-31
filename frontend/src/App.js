@@ -4,7 +4,7 @@ import AuthContext from './store/auth-context';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard/Dashboard';
-
+ 
 const App = () => {
   const authCtx = useContext(AuthContext);
   const isAuthenticated = !!authCtx.token;

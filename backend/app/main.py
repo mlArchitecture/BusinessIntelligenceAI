@@ -4,14 +4,14 @@ from pydantic import BaseModel
 from enum import Enum
 import uvicorn
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from passlib.context import CryptContext
 from orchestrator_graph import orchestrator
 import duckdb
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "temporary_secret_key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 DB_FILE = "business_intelligence.db"
@@ -24,7 +24,8 @@ app = FastAPI(title="BusinessIntelligence.AI Engine")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://business-intelligence-ai-lilac.vercel.app"
+        "https://business-intelligence-ai-lilac.vercel.app",
+        "http://localhost:3000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -98,7 +99,7 @@ def verify_password(plain_password: str, hashed_password: str):
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -123,38 +124,61 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 @app.post("/api/v1/signup", status_code=status.HTTP_201_CREATED)
 async def signup_endpoint(user: UserCreate):
     conn = get_db_connection()
-    existing_user = conn.execute("SELECT userId FROM Users WHERE userId = ?", [user.userId]).fetchone()
-    
-    if existing_user:
+    try:
+        existing_user = conn.execute("SELECT userId FROM Users WHERE userId = ?", [user.userId]).fetchone()
+        
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User already exists")
+        
+        encrypted_password = get_password_hash(user.password)
+        conn.execute(
+            "INSERT INTO Users (userId, Encrypted_password, persona) VALUES (?, ?, ?)",
+            [user.userId, encrypted_password, user.persona.value]
+        )
+        conn.commit()
+        
+        return {"message": "User created"}
+    except HTTPException:
+        raise
+    except Exception:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    finally:
         conn.close()
-        raise HTTPException(status_code=400, detail="User already exists")
-    
-    encrypted_password = get_password_hash(user.password)
-    conn.execute(
-        "INSERT INTO Users (userId, Encrypted_password, persona) VALUES (?, ?, ?)",
-        [user.userId, encrypted_password, user.persona.value]
-    )
-    conn.commit()
-    conn.close()
-    
-    return {"message": "User created"}
 
 @app.post("/api/v1/login", response_model=Token)
 async def login_endpoint(user: UserLogin):
     conn = get_db_connection()
-    db_user = conn.execute("SELECT * FROM Users WHERE userId = ?", [user.userId]).fetchone()
-    conn.close()
-    
-    if not db_user or not verify_password(user.password, db_user[1]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    access_token = create_access_token(data={"sub": user.userId, "persona": db_user[2]})
-    
-    return Token(
-        access_token=access_token,
-        token_type="bearer",
-        persona=db_user[2]
-    )
+    try:
+        db_user = conn.execute("SELECT * FROM Users WHERE userId = ?", [user.userId]).fetchone()
+        
+        if not db_user or not verify_password(user.password, db_user[1]):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        access_token = create_access_token(data={"sub": user.userId, "persona": db_user[2]})
+        
+        return Token(
+            access_token=access_token,
+            token_type="bearer",
+            persona=db_user[2]
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    finally:
+        conn.close()
+
+@app.get("/api/v1/getUsers")
+async def get_users():
+    conn = get_db_connection()
+    try:
+        db_users = conn.execute("SELECT * FROM Users").fetchall()
+        return db_users
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    finally:
+        conn.close()
 
 @app.post("/api/v1/analyze-variance", response_model=VarianceResponse)
 async def analyze_variance_endpoint(request: VarianceRequest, current_user: dict = Depends(get_current_user)):

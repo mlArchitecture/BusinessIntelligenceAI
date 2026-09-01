@@ -8,10 +8,10 @@ import duckdb
 
 def analyze_forecast_variance(today_date):
     conn = duckdb.connect("business_intelligence.db")
-    df = conn.execute("select * from KPIs").df()
+    df = conn.execute("select * from kpi_data").df()
     conn.close()
     df['date'] = pd.to_datetime(df['date'])
-    # df = df.sort_values('date').set_index('date') No need to sort based on date, assuming the data is already sorted based on date
+    df = df.sort_values('date').set_index('date')
     
     target_kpi = 'total_revenue'
     # Removed 'gross_margin_pct' and 'total_cogs' to prevent mathematical data leakage

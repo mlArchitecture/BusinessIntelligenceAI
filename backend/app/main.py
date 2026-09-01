@@ -9,6 +9,7 @@ from passlib.context import CryptContext
 from orchestrator_graph import orchestrator
 import duckdb
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import os
 
 SECRET_KEY = os.getenv("SECRET_KEY", "temporary_secret_key")
@@ -19,22 +20,8 @@ DB_FILE = "business_intelligence.db"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/login")
 
-app = FastAPI(title="BusinessIntelligence.AI Engine")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://business-intelligence-ai-lilac.vercel.app",
-        "http://localhost:3000"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# setup_cors(app)
-
-def init_db():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     conn = duckdb.connect(DB_FILE)
     
     conn.execute("""
@@ -46,21 +33,31 @@ def init_db():
     """)
     
     conn.execute("""
-        CREATE TABLE IF NOT EXISTS KPIs (
-            date DATE PRIMARY KEY,
-            total_revenue DOUBLE,
-            conversion_rate DOUBLE,
-            aov DOUBLE,
-            return_rate DOUBLE,
-            total_orders INTEGER,
-            total_sessions INTEGER,
-            daily_ad_spend DOUBLE,
-            cac DOUBLE
+        CREATE TABLE IF NOT EXISTS kpi_data AS 
+        WITH indexed_data AS (
+            SELECT 
+                (CURRENT_DATE - (686 - ROW_NUMBER() OVER ()) * INTERVAL 1 DAY)::DATE AS date,
+                *
+            FROM read_csv_auto('backend/data/master_kpi_daily.csv')
         )
+        SELECT * FROM indexed_data
     """)
+    
     conn.close()
+    yield
 
-init_db()
+app = FastAPI(title="BusinessIntelligence.AI Engine", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://business-intelligence-ai-lilac.vercel.app",
+        "http://localhost:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_db_connection():
     return duckdb.connect(DB_FILE)

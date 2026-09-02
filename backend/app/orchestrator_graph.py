@@ -2,7 +2,8 @@ import json
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
+from langchain_google_genai import ChatGoogleGenerativeAI
 from forecasting_engine import analyze_forecast_variance
 
 # 1. Update State Definition
@@ -39,8 +40,9 @@ def confidence_gate(state: GraphState):
 
 # 4. Execution Node: LLM Generation
 def generate_narrative_node(state: GraphState):
-    # Temperature 0 ensures deterministic, non-creative text generation
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    # llm_pro = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0, max_retries=0)
+    llm_flash = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=1, thinking_level='high')
+    # llm_with_fallback = llm_pro.with_fallbacks([llm_flash])
     
     prompt = PromptTemplate.from_template(
         "You are a strict business intelligence assistant.\n"
@@ -54,10 +56,10 @@ def generate_narrative_node(state: GraphState):
         "Data: {evidence}"
     )
     
-    chain = prompt | llm
+    # chain = prompt | llm_with_fallback
+    chain = prompt | llm_flash | StrOutputParser()
     response = chain.invoke({"evidence": state["evidence_json"]})
-    
-    return {"narrative": response.content}
+    return {"narrative": response}
 
 # 5. Execution Node: System Abstention
 def abstain_node(state: GraphState):

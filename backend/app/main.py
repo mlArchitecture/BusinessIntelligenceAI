@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from enum import Enum
 import uvicorn
@@ -10,7 +10,10 @@ from orchestrator_graph import orchestrator
 import duckdb
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "temporary_secret_key")
 ALGORITHM = "HS256"
@@ -38,7 +41,7 @@ async def lifespan(app: FastAPI):
             SELECT 
                 (CURRENT_DATE - (686 - ROW_NUMBER() OVER ()) * INTERVAL 1 DAY)::DATE AS date,
                 *
-            FROM read_csv_auto('backend/data/master_kpi_daily.csv')
+            FROM read_csv_auto('../data/master_kpi_daily.csv')
         )
         SELECT * FROM indexed_data
     """)
@@ -144,16 +147,14 @@ async def signup_endpoint(user: UserCreate):
         conn.close()
 
 @app.post("/api/v1/login", response_model=Token)
+
 async def login_endpoint(user: UserLogin):
     conn = get_db_connection()
     try:
         db_user = conn.execute("SELECT * FROM Users WHERE userId = ?", [user.userId]).fetchone()
-        
         if not db_user or not verify_password(user.password, db_user[1]):
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        
         access_token = create_access_token(data={"sub": user.userId, "persona": db_user[2]})
-        
         return Token(
             access_token=access_token,
             token_type="bearer",

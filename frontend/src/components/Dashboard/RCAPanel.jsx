@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 
 const RCAPanel = ({ narrative, evidence }) => {
   if (!narrative) return null;
@@ -9,7 +10,7 @@ const RCAPanel = ({ narrative, evidence }) => {
     <div className="p-6 mt-6 bg-white rounded shadow-md">
       <h3 className="mb-4 text-xl font-bold">Root Cause Analysis</h3>
       <div className="p-4 mb-6 text-gray-800 bg-gray-50 rounded">
-        {narrative}
+        <ReactMarkdown>{narrative}</ReactMarkdown>
       </div>
       
       {parsedEvidence && parsedEvidence.ranked_drivers && (

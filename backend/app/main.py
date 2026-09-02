@@ -197,14 +197,14 @@ async def analyze_variance_endpoint(request: VarianceRequest, current_user: dict
             "analysis_date": request.analysis_date,
             "evidence_json": "",
             "historical_r2_score": 0.0,
-            "narrative": ""
+            "narrative": "",
+            "sub_queries": [],
+            "retrieved_context": ""
         }
-        
         result = orchestrator.invoke(initial_state)
-        
         return VarianceResponse(
-            narrative=result["narrative"],
-            evidence_json=result["evidence_json"]
+            narrative=result.get("narrative", ""),
+            evidence_json=result.get("evidence_json", "")
         )
     except HTTPException:
         raise
